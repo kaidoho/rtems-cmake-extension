@@ -199,9 +199,9 @@ set(__RTEMS_SIZEOF_BLKCNT_T__ ${SIZEOF_BLKCNT_T})
 configure_file(${PROJECT_SOURCE_DIR}/cmake/config/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/_generated/config.h)
 configure_file(${PROJECT_SOURCE_DIR}/cmake/config/version-vc-key.h.in ${CMAKE_CURRENT_BINARY_DIR}/_generated/version-vc-key.h)
 configure_file(${PROJECT_SOURCE_DIR}/cmake/config/cpuopts.h.in ${CMAKE_CURRENT_BINARY_DIR}/_generated/rtems/score/cpuopts.h)
-
+configure_file(${PROJECT_SOURCE_DIR}/c/src/lib/libbsp/${RTEMS_CPU}/${RTEMS_BSP_DIR_NAME}/bspopts.h.in ${CMAKE_CURRENT_BINARY_DIR}/_generated/bsp/bspopts.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/_generated)
-
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/_generated/bsp)
 
 
 

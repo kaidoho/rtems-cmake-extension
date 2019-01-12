@@ -34,10 +34,11 @@ set(BSP_LINKER_FILE "linkcmds.${RTEMS_BSP}")
 
 set(CPU_FLAGS   "-mcpu=cortex-m7 -march=armv7e-m -mfloat-abi=hard -mfpu=fpv5-d16 -mthumb -mthumb-interwork")
 set(OPT_FLAGS   "-ffunction-sections -fdata-sections")
+set(AUX_FLAGS   "-DSTM32F746xx")
 set(RTEMS_FLAGS "-Wall -Wmissing-prototypes -Wimplicit-function-declaration -Wstrict-prototypes -Wnested-externs")
 set(RTEMS_LINK_FLAGS "-B${BSP_SPEC_FOLDER} -qrtems  --specs bsp_specs  -Wl,--wrap=printf -Wl,--wrap=puts -Wl,--wrap=putchar")
 
-set(CMAKE_C_FLAGS    "${CPU_FLAGS} ${OPT_FLAGS} ${RTEMS_FLAGS} -std=gnu99" CACHE INTERNAL "C Flags")
+set(CMAKE_C_FLAGS    "${CPU_FLAGS} ${AUX_FLAGS} ${OPT_FLAGS} ${RTEMS_FLAGS} -std=gnu99" CACHE INTERNAL "C Flags")
 #-qrtems -B${exec_prefix}/lib/ -B${libdir}/ --specs bsp_specs ${CFLAGS}
 
 #${BSP_LINKER_FILE}

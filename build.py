@@ -306,7 +306,7 @@ if __name__ == '__main__':
 
   buildtasks = ["config","build", "install"]
 
-  buildtasks = ["config","build"]
+ # buildtasks = ["config","build"]
 
 
 

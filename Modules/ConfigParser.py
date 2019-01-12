@@ -194,8 +194,9 @@ class BspParser(CfgParser):
                                                                          self.libraryObjs[i].getNumberOfSourceFiles()))
 
     #write bspopts.h.in file
+    cfgFile = os.path.dirname(os.path.abspath(self.makeFile))
+    cfgFile = cfgFile + "/configure.ac"
     bspOptsFile = os.path.dirname(os.path.abspath(self.makeFile))
-    cfgFile = bspOptsFile + "/configure.ac"
     bspOptsFile = bspOptsFile + "/bspopts.h.in"
     bspOptsFile = open(bspOptsFile, 'w')
     if 1 == self.createCfgInBspOpts(cfgFile, bspOptsFile):

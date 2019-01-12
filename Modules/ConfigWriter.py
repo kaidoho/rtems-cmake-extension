@@ -148,7 +148,7 @@ class CmakeFileWriter():
 
     if targetIncludes:
       self.cmFile.write("target_include_directories( {0} PUBLIC\n".format(target.getName()))
-      self.cmFile.write("  $<BUILD_INTERFACE:")
+      self.cmFile.write("  $<BUILD_INTERFACE:;")
 
     for i in range(len(targetIncludes)):
       outString = outString + targetIncludes[i] + ";"
@@ -223,7 +223,8 @@ class BspCmakeFileWriter(CmakeFileWriter):
     self.cmFile.write("include_directories (\"${PROJECT_SOURCE_DIR}/bsps/include\")\n")
     self.cmFile.write("include_directories (\"${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/include\")\n")
     self.cmFile.write("include_directories (\"${{PROJECT_SOURCE_DIR}}/bsps/${{RTEMS_CPU}}/{0}/include\")"
-                      "\n\n".format(folder))
+                      "\n".format(folder))
+    self.cmFile.write("include_directories (\"${CMAKE_CURRENT_BINARY_DIR}/_generated/bsp\")\n\n")
 
   def getBspSwitch(self, line):
     sIdx = line.find("[")
