@@ -1,5 +1,5 @@
 include(CheckSymbolExists)
-include(CmakePushCheckState)
+include(CMakePushCheckState)
 
 function(check_rtems_function_exist FUNC HFILE VARNAME)
 
@@ -23,5 +23,5 @@ function(check_rtems_function_exist FUNC HFILE VARNAME)
       set(${VARNAME} "0" PARENT_SCOPE)
     endif()
   endif()
-  
+
 endfunction()
