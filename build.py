@@ -59,17 +59,15 @@ def run_cmd(cmd, workdir):
   p.stdout.close()
   p.wait()
 
-def run_cmake(tcroot,tcdef,makefile, installfolder,cmakeBinDir,ninjaBinDir,workdir,\
+def run_cmake(tcroot,tcdef,rtemsFolder, installfolder,cmakeBinDir,ninjaBinDir,workdir,\
 rtemsCpu, bspName, enable_networking , enable_posix , enable_multiprocessing , enable_smp , \
 enable_rtems_debug , enable_cxx , enable_tests , enable_paravirt, enable_drvmgr):
 
   cmd = []
   cmd.append(cmakeBinDir)
-  cmd.append("--debug-trycompile")
-  if sys.platform == "linux" or sys.platform == "linux2":
-    cmd.append("-GEclipse CDT4 - Ninja")
-  else:
-    cmd.append("-GEclipse CDT4 - Ninja")
+  #cmd.append("--debug-trycompile")
+
+  cmd.append("-GEclipse CDT4 - Ninja")
   if ninjaBinDir != "":
     cmd.append("-DCMAKE_MAKE_PROGRAM={0}".format(ninjaBinDir))
   else:
@@ -87,6 +85,23 @@ enable_rtems_debug , enable_cxx , enable_tests , enable_paravirt, enable_drvmgr)
   cmd.append("-DCMAKE_INSTALL_PREFIX={0}".format(installfolder))
   cmd.append("-DCMAKE_TOOLCHAIN_FILE={0}".format(tcdef))
   cmd.append("-DCMAKE_VERBOSE_MAKEFILE=ON")
+
+  searchPath = rtemsFolder + "/**/"+bspName+".cfg"
+  logger.info("Search Path {0}".format(searchPath))
+
+  for filename in glob.iglob( searchPath, recursive=True):
+    bspFolder = filename
+    break
+
+  if not os.path.isfile(bspFolder):
+    logger.error("BSP {0} not found in {1}.".format(bspName,rtemsFolder))
+    sys.exit()
+  bspFolder = os.path.dirname(bspFolder)
+  bspFolder = os.path.abspath(bspFolder + "/../")
+  bspFolder = os.path.basename(bspFolder)
+
+  cmd.append("-DRTEMS_BSP_DIR_NAME={0}".format(bspFolder))
+
 #  cmd.append("-DRTEMS_CPU={0}".format(cpu))
 
   cmd.append("-DRTEMS_NETWORKING={0}".format(str(int(enable_networking))))
@@ -99,7 +114,7 @@ enable_rtems_debug , enable_cxx , enable_tests , enable_paravirt, enable_drvmgr)
   cmd.append("-DRTEMS_PARAVIRT={0}".format(str(int(enable_paravirt))))
   cmd.append("-DRTEMS_DRVMGR={0}".format(str(int(enable_drvmgr))))
 
-  cmd.append( makefile )
+  cmd.append( rtemsFolder )
   print(cmd)
   run_cmd(cmd, workdir)
 
