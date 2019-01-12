@@ -5,4 +5,9 @@ enable_language(C ASM)
 
 include(${PROJECT_SOURCE_DIR}/cmake/checks/RunRtemsChecks.cmake)
 
+
+
 run_rtems_checks()
+
+
+add_subdirectory(${PROJECT_SOURCE_DIR}/cpukit)

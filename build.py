@@ -46,18 +46,18 @@ rootLogger.addHandler(consoleHandler)
 
 
 def run_cmd(cmd, workdir):
-  if sys.platform == "linux" or sys.platform == "linux2":
-    cmd = " ".join(str(x) for x in cmd)
+#  if sys.platform == "linux" or sys.platform == "linux2":
+#    cmd = " ".join(str(x) for x in cmd)
 
-  p = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True, cwd=workdir)
-  output, errors = p.communicate()
+  p = Popen(cmd, stdout=PIPE, stderr=STDOUT, bufsize=1,  cwd=workdir)
+
+
+  for line in iter(p.stdout.readline, b''):
+    tmp = str(line)
+
+    logger.info(tmp[2:len(tmp)-3])
+  p.stdout.close()
   p.wait()
-
-  print(output.decode('utf-8'))
-  print(errors.decode('utf-8'))
-
-
-
 
 def run_cmake(tcroot,tcdef,makefile, installfolder,cmakeBinDir,ninjaBinDir,workdir,\
 rtemsCpu, bspName, enable_networking , enable_posix , enable_multiprocessing , enable_smp , \
@@ -67,7 +67,7 @@ enable_rtems_debug , enable_cxx , enable_tests , enable_paravirt, enable_drvmgr)
   cmd.append(cmakeBinDir)
   cmd.append("--debug-trycompile")
   if sys.platform == "linux" or sys.platform == "linux2":
-    cmd.append("-G\"Eclipse CDT4 - Ninja\"")
+    cmd.append("-GEclipse CDT4 - Ninja")
   else:
     cmd.append("-GEclipse CDT4 - Ninja")
   if ninjaBinDir != "":
@@ -103,7 +103,7 @@ enable_rtems_debug , enable_cxx , enable_tests , enable_paravirt, enable_drvmgr)
   print(cmd)
   run_cmd(cmd, workdir)
 
-def run_build(ninjaBinDir,workdir):
+def run_build(ninjaBin,workdir):
   if not os.path.exists(workdir):
     logger.error("Error build folder does not exist. Run config")
     sys.exit()
@@ -112,12 +112,8 @@ def run_build(ninjaBinDir,workdir):
     logger.error("Error toolchain root directory does not contain bin folder")
     sys.exit()
 
-  cmd = []
+  cmd = [ninjaBin]
 
-  if ninjaBinDir != "":
-    cmd.append(ninjaBinDir + "/ninja")
-  else:
-    cmd.append("ninja")
 
   cmd.append("-v")
 
@@ -125,17 +121,12 @@ def run_build(ninjaBinDir,workdir):
 
 
 
-def run_install(ninjaBinDir,workdir):
+def run_install(ninjaBin,workdir):
   if not os.path.exists(workdir):
     logger.error("Error build folder does not exist. Run config")
     sys.exit()
 
-  cmd = []
-
-  if ninjaBinDir != "":
-    cmd.append(ninjaBinDir + "/ninja")
-  else:
-    cmd.append("ninja")
+  cmd = [ninjaBin]
 
   cmd.append("install")
   cmd.append("-v")
@@ -248,7 +239,7 @@ def prepare_build(tcroot, rtemsFolder, bspName,buildfolder,cpu):
     logger.info("CFLAGS {0}".format(cflags))
 
 
-    precompile_start_file(tcroot, cpu,startFile,cflags.rstrip())
+    #precompile_start_file(tcroot, cpu,startFile,cflags.rstrip())
 
 
 if __name__ == '__main__':
@@ -300,7 +291,7 @@ if __name__ == '__main__':
 
   buildtasks = ["config","build", "install"]
 
-  buildtasks = ["config"]
+  buildtasks = ["config","build"]
 
 
 

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: BSD-2-Clause
 #
-# Copyright (C) 2018, M. B. Moessner 
+# Copyright (C) 2018, M. B. Moessner
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -50,8 +50,8 @@ message(STATUS "")
 #check if we build out of source
 if ( ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR} )
   message( FATAL_ERROR "\
-Attempt to build inside the source tree.\ 
-Please use a separate build directory, instead.\ 
+Attempt to build inside the source tree.\
+Please use a separate build directory, instead.\
 Remove all generated files in this folder." )
 endif()
 
@@ -66,7 +66,7 @@ check_rtems_posix_api()
 #TODO RTEMS_ENABLE_NETWORKING
 check_rtems_networking()
 # ephaniy x86_64 ? fail or silently walk over it?
-# include path will be added in other cmakelists 
+# include path will be added in other cmakelists
 #RTEMS_CPPFLAGS="${RTEMS_CPPFLAGS} -I${RTEMS_SOURCE_ROOT}/cpukit/libnetworking"],
 
 if(${RTEMS_ENABLE_RTEMS_DEBUG})
@@ -104,24 +104,24 @@ check_rtems_function_exist("pthread_getattr_np" "pthread.h" HAVE_DECL_PTHREAD_GE
 check_c_source_compiles("
 #include <sys/mman.h>
 int mprotect(const void *, size_t, int);
-int main() 
-{ 
+int main()
+{
   return 0;
 }" HAVE_MPROTECT_CONST)
 
 check_c_source_compiles("
 #include <pthread.h>
 int pthread_mutex_getprioceiling(const pthread_mutex_t *__restrict, int *);
-int main() 
-{ 
+int main()
+{
   return 0;
 }" HAVE_PTHREAD_MUTEX_GETCEILING_CONST)
 
 check_c_source_compiles("
 #include <pthread.h>
 int pthread_setschedparam(pthread_t, int, const struct sched_param *);
-int main() 
-{ 
+int main()
+{
   return 0;
 }" HAVE_PTHREAD_SETSCHEDPARAM_CONST)
 
@@ -136,7 +136,7 @@ if(${HEADER_PRESENT})
   check_rtems_type_exits("pthread_rwlock_t" HAVE_PTHREAD_RWLOCK_T)
   check_rtems_type_exits("pthread_barrier_t" HAVE_PTHREAD_BARRIER_T)
   check_rtems_type_exits("pthread_spinlock_t" HAVE_PTHREAD_SPINLOCK_T)
-  check_rtems_type_exits("struct _pthread_cleanup_context" HAVE_STRUCT__PTHREAD_CLEANUP_CONTEXT) 
+  check_rtems_type_exits("struct _pthread_cleanup_context" HAVE_STRUCT__PTHREAD_CLEANUP_CONTEXT)
   check_rtems_type_exits("struct _Priority_Node" HAVE_STRUCT__PRIORITY_NODE)
 endif()
 
@@ -172,7 +172,7 @@ check_include_files("stdint.h" HAVE_STDINT_H)
 if( ${HAVE_STDDEF_H} AND ${HAVE_STDIO_H} AND ${HAVE_STDLIB_H} AND ${HAVE_STRING_H} AND
     ${HAVE_SYS_TYPES_H} AND ${HAVE_SYS_STAT_H} AND ${HAVE_STRINGS_H} AND ${HAVE_INTTYPES_H} AND
     ${HAVE_STDINT_H} AND ${HAVE_UNISTD_H} AND ${HAVE_STRINGS_H} AND ${HAVE_INTTYPES_H})
-set (STDC_HEADERS "1")    
+set (STDC_HEADERS "1")
 endif()
 
 
@@ -196,11 +196,11 @@ set(__RTEMS_SIZEOF_BLKSIZE_T__ ${SIZEOF_BLKSIZE_T})
 set(__RTEMS_SIZEOF_BLKCNT_T__ ${SIZEOF_BLKCNT_T})
 
 
-#configure_file(${PROJECT_SOURCE_DIR}/cmake/config/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/_generated/config.h)
-#configure_file(${PROJECT_SOURCE_DIR}/cmake/config/version-vc-key.h.in ${CMAKE_CURRENT_BINARY_DIR}/_generated/version-vc-key.h)
-#configure_file(${PROJECT_SOURCE_DIR}/cmake/config/cpuopts.h.in ${CMAKE_CURRENT_BINARY_DIR}/_generated/rtems/score/cpuopts.h)
+configure_file(${PROJECT_SOURCE_DIR}/cmake/config/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/_generated/config.h)
+configure_file(${PROJECT_SOURCE_DIR}/cmake/config/version-vc-key.h.in ${CMAKE_CURRENT_BINARY_DIR}/_generated/version-vc-key.h)
+configure_file(${PROJECT_SOURCE_DIR}/cmake/config/cpuopts.h.in ${CMAKE_CURRENT_BINARY_DIR}/_generated/rtems/score/cpuopts.h)
 
-#include_directories(${CMAKE_CURRENT_BINARY_DIR}/_generated)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/_generated)
 
 
 
