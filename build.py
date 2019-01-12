@@ -261,13 +261,16 @@ if __name__ == '__main__':
 
   envArgs.add_argument('-idir','--prefix',   help='set the directory to which RTEMS is installed (default=../../SystemOS/rtems/_install) ', default='../../SystemOS/rtems/_install')
   envArgs.add_argument('-bdir','--builddir', help='set the directory in which CMake will build RTEMS (default=../../SystemOS/rtems/_build) '  , default='../../SystemOS/rtems/_build')
+  if sys.platform == "linux" or sys.platform == "linux2":
 
-  envArgs.add_argument('-cdir','--cmakebindir', help='path to the directory containing cmake executable'  , default='cmake')
-  envArgs.add_argument('-ndir','--ninjabindir', help='path to the directory containing ninja executable'  , default='ninja')
+    envArgs.add_argument('-cdir','--cmakebindir', help='path to the directory containing cmake executable'  , default='cmake')
+    envArgs.add_argument('-ndir','--ninjabindir', help='path to the directory containing ninja executable'  , default='ninja')
+    optional.add_argument('-tcroot',   help='must point to the root directory of the toolchain ',default="/home/blofeld/RTEMS-Toolchains")
+  else:
+    envArgs.add_argument('-cdir','--cmakebindir', help='path to the directory containing cmake executable'  , default='C:/Program Files/CMake/bin/cmake.exe')
+    envArgs.add_argument('-ndir','--ninjabindir', help='path to the directory containing ninja executable'  , default='D:/projects/ninja/ninja.exe')
+    optional.add_argument('-tcroot',   help='must point to the root directory of the toolchain ',default="D:/projects/arm-rtems5-kernel-5-1")
 
-  envArgs.add_argument('-tdef','--toolchaindefinition', help='the toolchain definition is set based on the targetprc setting. '\
-                                                  'use this switch to overwrite the settings given in cmake/cfg_targets.json', default='')
-  optional.add_argument('-tcroot',   help='must point to the root directory of the toolchain ',default="/home/blofeld/RTEMS-Toolchains")
   optional.add_argument('-bsp',   help='enter the BSP',default="nucleo-stm32f746zg")
 
   optional.add_argument('--enable-multiprocessing', help='enable multiprocessing interface' \
