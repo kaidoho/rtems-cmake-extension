@@ -225,3 +225,44 @@ class LibraryTarget(Depender):
         headerPath = headerPath.replace("\\", "/")
       cmakefile.write("target_include_directories(" + name + " PUBLIC\n")
       cmakefile.write("$<BUILD_INTERFACE:" + self.blockIncludeFiles[i] + ">)\n")
+
+
+class BspSwitchHelper():
+  __clause = ""
+  __value = ""
+
+  def __init__(self, clause, value):
+    self.__clause = clause
+    self.__value = value
+
+  def getClause(self):
+    return self.__clause
+
+  def getValue(self):
+    return self.__value
+
+
+class BspSwitch():
+  __name = ""
+  __helper = []
+
+  def __init__(self, name):
+    self.__name = name
+    self.__helper = []
+
+  def getName(self):
+    return self.__name
+
+  def addClause(self, clause, value):
+
+    idx = clause.find("|")
+    if -1 != idx:
+      while -1 != idx:
+        self.__helper.append(BspSwitchHelper(clause[:idx], value))
+        clause = clause[idx + 2:]
+        idx = clause.find("|")
+    self.__helper.append(BspSwitchHelper(clause, value))
+
+  def getClauses(self):
+    return self.__helper
+

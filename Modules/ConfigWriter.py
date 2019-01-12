@@ -64,7 +64,6 @@ class CmakeFileWriter():
             if blockOpen == 0:
               self.__writeBlockHeader(target, dependencyDepth, dependencyNames)
               blockOpen = 1
-
             self.cmFile.write("  ${PROJECT_SOURCE_DIR}/" + sourceFiles[i].getSourcePath(self.topCmFolder) + "\n")
           else:
             # file does not match so store it for the next pass
@@ -206,3 +205,150 @@ class KernelCmakeFileWriter(CmakeFileWriter):
 
     self.cmFile.write("set(CPU_HEADER_DIR ${CPU_HEADER_DIR} CACHE INTERNAL \"CPU_HEADER_DIR\")\n")
     self.cmFile.write("set(RTEMS_LIBS ${RTEMS_LIBS} CACHE INTERNAL \"RTEMS_LIBS\")\n")
+
+
+
+class BspCmakeFileWriter(CmakeFileWriter):
+
+  def __init__(self, logger, sourceFolder, topDir):
+    super().__init__(logger, sourceFolder, topDir)
+
+  def writeBspCmakeFileHeader(self):
+    self.writeCmakeFileHeader()
+
+    folder = os.path.basename(os.path.normpath(self.sourceFolder))
+
+    self.cmFile.write("include_directories (\"${PROJECT_SOURCE_DIR}/cpukit/include\")\n")
+    self.cmFile.write("include_directories (\"${PROJECT_SOURCE_DIR}/cpukit/score/cpu/${RTEMS_CPU}/include\")\n")
+    self.cmFile.write("include_directories (\"${PROJECT_SOURCE_DIR}/bsps/include\")\n")
+    self.cmFile.write("include_directories (\"${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/include\")\n")
+    self.cmFile.write("include_directories (\"${{PROJECT_SOURCE_DIR}}/bsps/${{RTEMS_CPU}}/{0}/include\")"
+                      "\n\n".format(folder))
+
+  def getBspSwitch(self, line):
+    sIdx = line.find("[")
+    eIdx = line.find("]")
+
+    name = line[sIdx + 1:eIdx]
+
+    line = line[eIdx + 1:]
+    sIdx = line.find("[")
+    eIdx = line.find("]")
+
+    clause = line[sIdx + 1:eIdx]
+
+    line = line[eIdx + 1:]
+    sIdx = line.find("[")
+    eIdx = line.find("]")
+
+    value = line[sIdx + 1:eIdx]
+    BspSwitch(name, clause, value)
+    return BspSwitch(name, clause, value)
+
+  def writeBspOptsFile(self, cfgFile):
+
+    switches = []
+    bspSwitches = []
+
+    with open(cfgFile, 'r') as f:
+      line = f.readline()
+
+      while line:
+        line = line.rstrip()
+        searchString = "RTEMS_BSPOPTS_SET("
+
+        idx = line.find(searchString)
+        if -1 != idx:
+          line = line[len(searchString) + 1:]
+          switches.append(line[:line.find("]")])
+
+        line = f.readline()
+
+    switches = list(set(switches))
+
+    for i in range(len(switches)):
+      bspSwitches.append(BspSwitch(switches[i]))
+
+    for i in range(len(bspSwitches)):
+      with open(cfgFile, 'r') as f:
+        line = f.readline()
+
+        while line:
+          line = line.rstrip()
+          searchString = "RTEMS_BSPOPTS_SET("
+          idx = line.find(searchString)
+          if -1 != idx:
+            idx = line.find(bspSwitches[i].getName())
+            if -1 != idx:
+              line = line[idx + 2 + len(bspSwitches[i].getName()):]
+              sIdx = line.find("[")
+              eIdx = line.find("]")
+
+              clause = line[sIdx + 1:eIdx]
+
+              line = line[eIdx + 1:]
+              sIdx = line.find("[")
+              eIdx = line.find("]")
+
+              value = line[sIdx + 1:eIdx]
+              bspSwitches[i].addClause(clause, value)
+          line = f.readline()
+
+    for i in range(len(bspSwitches)):
+      self.parseBspSwitch(bspSwitches[i])
+
+    with open(cfgFile, 'r') as f:
+      line = f.readline()
+
+      while line:
+        searchString = "RTEMS_BSP_CLEANUP_OPTIONS"
+
+        idx = line.find(searchString)
+        if -1 != idx:
+          return 1
+
+        line = f.readline()
+
+    return 0
+
+  def parseBspSwitch(self, switch):
+    ifIsOpen = 0
+    clauses = switch.getClauses()
+
+    if 1 == len(clauses):
+
+      if "" != clauses[0].getValue():
+        if "*" == clauses[0].getClause():
+          self.writeSwitch(switch.getName(), clauses[0].getValue())
+          self.cmFile.write("\n")
+        else:
+          self.writeSwitchStart("if", clauses[0].getClause())
+          self.writeSwitch(switch.getName(), clauses[0].getValue())
+          self.cmFile.write("endif() # {0}\n\n".format(switch.getName()))
+    else:
+      for i in range(len(clauses)):
+
+        if ifIsOpen == 0:
+          self.writeSwitchStart("if", clauses[i].getClause())
+          ifIsOpen = 1
+        else:
+          if "*" == clauses[i].getClause():
+            self.writeSwitchStart("else", clauses[i].getClause())
+          else:
+            self.writeSwitchStart("elseif", clauses[i].getClause())
+
+        self.writeSwitch(switch.getName(), clauses[i].getValue())
+      self.cmFile.write("endif() # {0}\n\n".format(switch.getName()))
+
+  def writeSwitchStart(self, pfx, clause):
+
+    clause = clause.replace("*", ".*")
+
+    if pfx == "else":
+      self.cmFile.write("else()\n")
+    else:
+      self.cmFile.write("{0}(${{BSP_NAME}} MATCHES \"{1}\")\n".format(pfx, clause))
+
+  def writeSwitch(self, name, value):
+    if value:
+      self.cmFile.write("set({0} {1} CACHE INTERNAL \"{2}\")\n".format(name, value, name))

@@ -101,7 +101,7 @@ class CfgParser():
         findsting = "lib" + target.getName() + "_a_SOURCES += "
         idx = line.find(findsting)
 
-        if -1 != idx:
+        if 0 == idx:
           line = line[len(findsting):]
           pMake = os.path.dirname(os.path.abspath(makefile))
           line = pMake + "/" + line
@@ -144,6 +144,9 @@ class CfgParser():
 
     target.setCompilerFlags(c_flags, cpp_flags)
 
+
+
+
 class CpukitParser(CfgParser):
 
   def __init__(self, topDir, logger):
@@ -170,3 +173,126 @@ class CpukitParser(CfgParser):
     mWriter.writeLibraryTargets(self.libraryObjs)
     mWriter.writeKernelTargetsList(self.libraryObjs)
     mWriter.writeKernelCmakeExport(self.libraryObjs)
+
+
+class BspParser(CfgParser):
+  def __init__(self, topDir, makefileDir, logger):
+    super().__init__(logger)
+    self.setSrcDir(topDir)
+    self.makeFile = makefileDir + "/Makefile.am"
+    return
+
+  def parseMakefile(self):
+    self.logger.info("Starting to parse BSP Makefile: {0}".format(self.makeFile))
+    self.findTargets("project_lib_LIBRARIES = ")
+
+    for i in range(len(self.libraryObjs)):
+      self.findTargetDependencies(self.libraryObjs[i], self.makeFile)
+      self.findTargetSourceFiles(self.libraryObjs[i], self.makeFile)
+      self.findTargetCompilerFlags(self.libraryObjs[i], self.makeFile)
+      self.logger.info("Found lib: {0} contains {1} source files".format(self.libraryObjs[i].getName(),
+                                                                         self.libraryObjs[i].getNumberOfSourceFiles()))
+
+    #write bspopts.h.in file
+    bspOptsFile = os.path.dirname(os.path.abspath(self.makeFile))
+    cfgFile = bspOptsFile + "/configure.ac"
+    bspOptsFile = bspOptsFile + "/bspopts.h.in"
+    bspOptsFile = open(bspOptsFile, 'w')
+    if 1 == self.createCfgInBspOpts(cfgFile, bspOptsFile):
+      cfgFile = self.getSrcDir() + "/c/src/aclocal/bsp-bspcleanup-options.m4"
+      self.appendCfgInBspOpts(cfgFile, bspOptsFile)
+    self.writeCfgInBspOptsEnd(bspOptsFile)
+
+    bspName = os.path.dirname(self.makeFile)
+    bspName = os.path.basename(bspName)
+    cpuName = os.path.dirname(os.path.dirname(self.makeFile))
+    cpuName = os.path.basename(cpuName)
+
+    sourceFolder =  os.path.abspath(self.getSrcDir() + "/bsps/" + cpuName + "/" + bspName)
+
+    mWriter = BspCmakeFileWriter(self.logger, sourceFolder, self.getSrcDir())
+    mWriter.writeBspCmakeFileHeader()
+
+    bspOptsFile = os.path.dirname(os.path.abspath(self.makeFile))
+    cfgFile = bspOptsFile + "/configure.ac"
+    if 1 == mWriter.writeBspOptsFile(cfgFile):
+      cfgFile = self.getSrcDir() + "/c/src/aclocal/bsp-bspcleanup-options.m4"
+    mWriter.writeBspOptsFile(cfgFile)
+
+    mWriter.writeAllTargetSourceFiles(self.libraryObjs)
+    mWriter.writeLibraryTargets(self.libraryObjs)
+
+  def appendCfgInBspOpts(self, cfgFile, outFile):
+    names = []
+
+    with open(cfgFile, 'r') as f:
+      line = f.readline()
+
+      while line:
+        line = line.rstrip()
+        searchString = "RTEMS_BSPOPTS_SET("
+
+        idx = line.find(searchString)
+        if -1 != idx:
+          line = line[len(searchString) + 1:]
+          names.append(line[:line.find("]")])
+        line = f.readline()
+
+    names = list(set(names))
+
+    for i in range(len(names)):
+      self.writeCfgInBspOptsSwitch(cfgFile, outFile, names[i])
+
+
+  def writeCfgInBspOptsHeader(self, outFile):
+    outFile.write("#ifndef __BSP_OPTIONS_H\n")
+    outFile.write("#define __BSP_OPTIONS_H\n\n")
+
+  def writeCfgInBspOptsEnd(self,outFile):
+    outFile.write("\n#endif // __BSP_OPTIONS_H\n")
+
+  def writeCfgInBspOptsSwitch(self, cfgFile, outFile, name):
+
+    found = 0
+    with open(cfgFile, 'r') as f:
+      line = f.readline()
+
+      while line:
+        line = line.rstrip()
+        searchString = "RTEMS_BSPOPTS_HELP("
+
+        idx = line.find(searchString)
+        if -1 != idx:
+          line = line[len(searchString) + 1:]
+          idx = line.find(name)
+          if -1 != idx:
+            line = line[len(name) + 3:]
+            line = line[:line.find("]")]
+            outFile.write("//{0} {1}\n".format(name, line))
+            outFile.write("#cmakedefine {0} @{1}@\n\n".format(name, name))
+            found = 1
+
+        line = f.readline()
+
+    if 0 == found:
+      outFile.write("// {0} - not in BSP CONFIG\n".format(name))
+      outFile.write("#cmakedefine {0} @{1}@\n\n".format(name, name))
+
+  def createCfgInBspOpts(self, cfgFile, outFile):
+
+    self.writeCfgInBspOptsHeader(outFile)
+    self.appendCfgInBspOpts(cfgFile, outFile)
+
+    with open(cfgFile, 'r') as f:
+      line = f.readline()
+
+      while line:
+        searchString = "RTEMS_BSP_CLEANUP_OPTIONS"
+
+        idx = line.find(searchString)
+        if -1 != idx:
+          return 1
+
+        line = f.readline()
+
+    return 0

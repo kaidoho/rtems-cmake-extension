@@ -84,21 +84,61 @@ if __name__ == '__main__':
     argParser = argparse.ArgumentParser(description='Add CMake support to RTEMS Core')
     optArgs = argParser._action_groups.pop()
     optArgs.add_argument('-rtems-src', '--rtems-source-directory',
-                         help="set the path to directory in which you've checked out RTEMS" 
+                         help="set the path to directory in which you've checked out RTEMS"
                          "(default=../../SystemOS/rtems/rtems)",
                          default="../../SystemOS/rtems/rtems")
     argParser._action_groups.append(optArgs)
     args = argParser.parse_args()
     currentWorkDir = os.getcwd()
 
-
-    rtemsDir = get_rtems_src_dir(args.rtems_source_directory)
-    clean_rtems_src_dir(rtemsDir)
-    copy_in_cmake_rtems_src_dir(rtemsDir)
+    rtemsFolder = get_rtems_src_dir(args.rtems_source_directory)
+    clean_rtems_src_dir(rtemsFolder)
+    copy_in_cmake_rtems_src_dir(rtemsFolder)
 
     logger.info("Bootstrap RTEMS")
     logger.info("Current work directory: {0}".format(currentWorkDir))
-    logger.info("RTEMS directory: {0}".format(rtemsDir))
+    logger.info("RTEMS directory: {0}".format(rtemsFolder))
 
-    CpukitParser = CpukitParser(rtemsDir, logger)
+    CpukitParser = CpukitParser(rtemsFolder, logger)
     CpukitParser.parseMakefile()
+
+    searchPath = rtemsFolder + "/c/src/lib/libbsp/**/Makefile.am"
+    BspParsers = []
+
+    bspCount = 0
+    for filename in glob.iglob(searchPath, recursive=True):
+        bspName = filename[filename.find("libbsp") + 7:]
+        bspName = bspName[:bspName.find("Makefile.am")]
+        bspName = bspName[:-1]
+        projSourceDir = rtemsFolder + "/bsps/" + bspName
+        projSourceDir = projSourceDir.replace("\\", "/")
+
+        bspName = bspName.replace("\\", "-")
+        bspName = bspName.replace("/", "-")
+        idx = bspName.find("qemu_fakerom")
+        idxx = bspName.find("bootloader")
+        if -1 == idx:
+            if -1 == idxx:
+                idx = bspName.find("-")
+                makefileLocation = os.path.dirname(os.path.abspath(filename))
+                if -1 != idx:
+                    bspCount = bspCount + 1
+                    makefileLocation = makefileLocation.replace("\\", "/")
+                    logger.info("Found BSP [{0}] in: {1}".format(bspCount, makefileLocation))
+                    BspParsers.append(BspParser(rtemsFolder, makefileLocation, logger))
+
+            else:
+                logger.info("Dropped BSP in: {0}".format(bspName))
+        else:
+            logger.info("Dropped BSP in: {0}".format(bspName))
+
+    for i in range(len(BspParsers)):
+        BspParsers[i].parseMakefile()
+
+ #                   par = BspMakeFileParser(logger)
+ #                   par.setCmakeProjectConfig("3.10", "bsp-" + bspname, "5.0.0")
+ #                   makefileLocation = makefileLocation.replace("\\", "/")
+ #                   par.setMakefilePath(makefileLocation)
+ #                   par.setSourceDirectory(projSourceDir)
+  #                  par.setTopLevelFolder(rtemsFolder)
+   #                 bspParsers.append(par)
