@@ -26,13 +26,13 @@
 
 from Modules.ConfigWriter import *
 
+
 class CfgParser():
   logger = ""
   __sourceDir = ""
   makeFile = ""
   libraryObjs = []
-
-
+  headerFiles = []
 
   def __init__(self, logger):
     super().__init__()
@@ -40,10 +40,12 @@ class CfgParser():
     self.makeFile = ""
     self.__sourceDir = ""
     self.libraryObjs = []
+    self.headerFiles = []
     return
 
   def setSrcDir(self, dir):
     self.__sourceDir = dir
+
   def getSrcDir(self):
     return self.__sourceDir
 
@@ -116,6 +118,23 @@ class CfgParser():
         linenumber = linenumber + 1;
         line = f.readline()
 
+  def findTargetHeaderFiles(self, headerPath, destPath):
+    headerFile = headerPath + "/headers.am"
+    linenumber = 1
+    searchString = "_HEADERS += "
+    self.logger.info("Headerfile: {0}".format(headerFile))
+
+    with open(headerFile, 'r') as f:
+      line = f.readline()
+      while line:
+        idx = line.find(searchString)
+        if -1 != idx:
+          line = line[idx + len(searchString):]
+          line = line.rstrip()
+          self.headerFiles.append(destPath + line)
+        linenumber = linenumber + 1;
+        line = f.readline()
+
   def findTargetCompilerFlags(self, target, makefile):
     linenumber = 1
     nFiles = 0
@@ -145,19 +164,19 @@ class CfgParser():
     target.setCompilerFlags(c_flags, cpp_flags)
 
 
-
-
 class CpukitParser(CfgParser):
 
   def __init__(self, topDir, logger):
     super().__init__(logger)
     self.setSrcDir(topDir)
-    self.makeFile=self.getSrcDir() + "/cpukit/Makefile.am"
+    self.makeFile = self.getSrcDir() + "/cpukit/Makefile.am"
     return
 
   def parseMakefile(self):
     self.logger.info("Starting to parse Kernel Makefile: {0}".format(self.makeFile))
     self.findTargets("project_lib_LIBRARIES += ")
+
+    self.findTargetHeaderFiles(os.path.dirname(os.path.abspath(self.makeFile)), "${PROJECT_SOURCE_DIR}/cpukit/")
 
     for i in range(len(self.libraryObjs)):
       self.findTargetDependencies(self.libraryObjs[i], self.makeFile)
@@ -166,12 +185,13 @@ class CpukitParser(CfgParser):
       self.logger.info("Found lib: {0} contains {1} source files".format(self.libraryObjs[i].getName(),
                                                                          self.libraryObjs[i].getNumberOfSourceFiles()))
 
-
-    mWriter = KernelCmakeFileWriter(self.logger, os.path.dirname(os.path.abspath(self.makeFile)), self.getSrcDir() )
+    mWriter = KernelCmakeFileWriter(self.logger, os.path.dirname(os.path.abspath(self.makeFile)), self.getSrcDir())
     mWriter.writeKernelCmakeFileHeader()
     mWriter.writeAllTargetSourceFiles(self.libraryObjs)
     mWriter.writeLibraryTargets(self.libraryObjs)
     mWriter.writeKernelTargetsList(self.libraryObjs)
+
+    mWriter.writeInstallHeaders(self.headerFiles)
     mWriter.writeKernelCmakeExport(self.libraryObjs)
 
 
@@ -193,7 +213,7 @@ class BspParser(CfgParser):
       self.logger.info("Found lib: {0} contains {1} source files".format(self.libraryObjs[i].getName(),
                                                                          self.libraryObjs[i].getNumberOfSourceFiles()))
 
-    #write bspopts.h.in file
+    # write bspopts.h.in file
     cfgFile = os.path.dirname(os.path.abspath(self.makeFile))
     cfgFile = cfgFile + "/configure.ac"
     bspOptsFile = os.path.dirname(os.path.abspath(self.makeFile))
@@ -209,7 +229,7 @@ class BspParser(CfgParser):
     cpuName = os.path.dirname(os.path.dirname(self.makeFile))
     cpuName = os.path.basename(cpuName)
 
-    sourceFolder =  os.path.abspath(self.getSrcDir() + "/bsps/" + cpuName + "/" + bspName)
+    sourceFolder = os.path.abspath(self.getSrcDir() + "/bsps/" + cpuName + "/" + bspName)
 
     mWriter = BspCmakeFileWriter(self.logger, sourceFolder, self.getSrcDir())
     mWriter.writeBspCmakeFileHeader()
@@ -222,6 +242,7 @@ class BspParser(CfgParser):
 
     mWriter.writeAllTargetSourceFiles(self.libraryObjs)
     mWriter.writeLibraryTargets(self.libraryObjs)
+    mWriter.writeBspCmakeExport(self.libraryObjs)
 
   def appendCfgInBspOpts(self, cfgFile, outFile):
     names = []
@@ -244,12 +265,11 @@ class BspParser(CfgParser):
     for i in range(len(names)):
       self.writeCfgInBspOptsSwitch(cfgFile, outFile, names[i])
 
-
   def writeCfgInBspOptsHeader(self, outFile):
     outFile.write("#ifndef __BSP_OPTIONS_H\n")
     outFile.write("#define __BSP_OPTIONS_H\n\n")
 
-  def writeCfgInBspOptsEnd(self,outFile):
+  def writeCfgInBspOptsEnd(self, outFile):
     outFile.write("\n#endif // __BSP_OPTIONS_H\n")
 
   def writeCfgInBspOptsSwitch(self, cfgFile, outFile, name):

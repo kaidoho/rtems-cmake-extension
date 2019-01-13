@@ -134,11 +134,3 @@ if __name__ == '__main__':
 
     for i in range(len(BspParsers)):
         BspParsers[i].parseMakefile()
-
- #                   par = BspMakeFileParser(logger)
- #                   par.setCmakeProjectConfig("3.10", "bsp-" + bspname, "5.0.0")
- #                   makefileLocation = makefileLocation.replace("\\", "/")
- #                   par.setMakefilePath(makefileLocation)
- #                   par.setSourceDirectory(projSourceDir)
-  #                  par.setTopLevelFolder(rtemsFolder)
-   #                 bspParsers.append(par)

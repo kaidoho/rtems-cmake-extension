@@ -183,7 +183,58 @@ class CmakeFileWriter():
     for i in range(len(targets)):
       self.writeLibraryTarget(targets[i])
 
+  def writeInstallHeadersBlock(self, blockName, headers):
+    self.cmFile.write("set(INSTALL_HEADERS{0} \n".format(blockName))
 
+    for i in range(len(headers)):
+      self.cmFile.write("{0}\n".format(headers[i]))
+
+    self.cmFile.write(") \n")
+
+    idxL = headers[0].find("/include") +len("/include")
+    idxR = headers[0].rfind("/")
+    dest = "${CMAKE_INSTALL_PREFIX}/include" + headers[0][idxL:idxR]
+    self.cmFile.write("install(FILES ${{INSTALL_HEADERS{0}}} DESTINATION {1})\n\n".format(blockName,dest))
+
+  def writeInstallHeaders(self, headers):
+
+    blockHeaders = []
+    saveHeaders = []
+
+    searchString = "/include/"
+    baseIdx = headers[0].find(searchString)
+    baseIdx = baseIdx + len(searchString)
+
+    for i in range(len(headers)):
+      searchString = "/include/"
+      if -1 == headers[i].find('/', baseIdx):
+        blockHeaders.append(headers[i])
+      else:
+        saveHeaders.append(headers[i])
+    self.writeInstallHeadersBlock("", blockHeaders)
+    headers = saveHeaders
+    # loop over all source files
+    while len(headers) > 0:
+      saveHeaders = []
+      blockHeaders = []
+      rIdx = headers[0].rfind("/")
+      searchString = headers[0]
+      searchString = searchString[baseIdx:rIdx]
+      self.logger.info("Hallo: " + headers[0])
+      self.logger.info("Hallo: " + searchString)
+
+      for i in range(len(headers)):
+        rIdxAct = headers[i].rfind("/")
+        if rIdxAct == rIdx:
+          idx = headers[i].find(searchString)
+          if idx == baseIdx:
+            blockHeaders.append(headers[i])
+          else:
+            saveHeaders.append(headers[i])
+        else:
+          saveHeaders.append(headers[i])
+      self.writeInstallHeadersBlock("_"+searchString.replace("/", "_"), blockHeaders)
+      headers = saveHeaders
 
 class KernelCmakeFileWriter(CmakeFileWriter):
 
@@ -353,3 +404,9 @@ class BspCmakeFileWriter(CmakeFileWriter):
   def writeSwitch(self, name, value):
     if value:
       self.cmFile.write("set({0} {1} CACHE INTERNAL \"{2}\")\n".format(name, value, name))
+
+  def writeBspCmakeExport(self,targets):
+    #self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/include DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
+
+    #self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
+    return
