@@ -35,14 +35,6 @@ import glob
 
 from Modules.ParserUtils import *
 
-logFormatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s",datefmt='%Y-%m-%d %H:%M:%S')
-rootLogger = logging.getLogger()
-rootLogger.setLevel(logging.DEBUG)
-consoleHandler = logging.StreamHandler()
-consoleHandler.setFormatter(logFormatter)
-rootLogger.addHandler(consoleHandler)
-
-
 
 
 
@@ -245,7 +237,7 @@ def prepare_build(tcroot, rtemsFolder, bspName,buildfolder,cpu):
 
 
 if __name__ == '__main__':
-  logger = logging.getLogger()
+  
   parser = argparse.ArgumentParser(description='Build RTEMS with CMake')
   optional = parser._action_groups.pop()
   required = parser.add_argument_group('required arguments')

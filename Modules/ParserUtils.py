@@ -31,6 +31,14 @@ import shutil
 import hashlib
 from subprocess import *
 
+logFormatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s",datefmt='%Y-%m-%d %H:%M:%S')
+rootLogger = logging.getLogger()
+rootLogger.setLevel(logging.DEBUG)
+consoleHandler = logging.StreamHandler()
+consoleHandler.setFormatter(logFormatter)
+rootLogger.addHandler(consoleHandler)
+logger = logging.getLogger()
+
 # Compute a hash over both lists and compare
 # Return 1 if they are equal, else 0
 def compareLists(lA, lB):

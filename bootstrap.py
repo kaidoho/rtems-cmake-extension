@@ -27,12 +27,6 @@
 import argparse
 from Modules.ConfigParser import *
 
-logFormatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s",datefmt='%Y-%m-%d %H:%M:%S')
-rootLogger = logging.getLogger()
-rootLogger.setLevel(logging.DEBUG)
-consoleHandler = logging.StreamHandler()
-consoleHandler.setFormatter(logFormatter)
-rootLogger.addHandler(consoleHandler)
 
 
 def get_rtems_src_dir(rDir):
@@ -79,8 +73,6 @@ def copy_in_cmake_rtems_src_dir(rdir):
 
 
 if __name__ == '__main__':
-    logger = logging.getLogger()
-
     argParser = argparse.ArgumentParser(description='Add CMake support to RTEMS Core')
     optArgs = argParser._action_groups.pop()
     optArgs.add_argument('-rtems-src', '--rtems-source-directory',
