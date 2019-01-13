@@ -431,26 +431,7 @@ class BspCmakeFileWriter(CmakeFileWriter):
 
   def writeBspCmakeExport(self,targets):
 
-    #self.cmFile.write("set(CPU_HEADER_DIR ${CPU_HEADER_DIR} CACHE INTERNAL \"CPU_HEADER_DIR\")\n")
-    #self.cmFile.write("set(RTEMS_LIBS ${RTEMS_LIBS} CACHE INTERNAL \"RTEMS_LIBS\")\n")
-    #self.cmFile.write("install(TARGETS ${RTEMS_LIBS}\n")
-    #self.cmFile.write("\tEXPORT kernel-targets\n")
-    #self.cmFile.write("\tARCHIVE DESTINATION lib\n")
-    #self.cmFile.write("\tPUBLIC_HEADER DESTINATION include\n")
-    #self.cmFile.write(")\n\n")
+#    self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
 
-    #self.cmFile.write("set(INSTALL_CONFIGDIR \"${CMAKE_INSTALL_PREFIX}/cmake\")\n\n")
-
-
-    #self.cmFile.write("install(EXPORT kernel-targets\n")
-    #self.cmFile.write("\tFILE\n")
-    #self.cmFile.write("\t\t${CMAKE_PROJECT_NAME}Targets.cmake\n")
-    #self.cmFile.write("\tDESTINATION\n")
-    #self.cmFile.write("\t\t${INSTALL_CONFIGDIR}\n")
-    #self.cmFile.write(")\n\n")
-    #self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/cpukit/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n\n")
-    #self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/cpukit/score/cpu/${RTEMS_CPU}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n\n")
-
-    self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
-
-    self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
+#    self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
+    return
