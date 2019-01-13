@@ -211,8 +211,11 @@ class CmakeFileWriter():
     for i in range(len(headers)):
       searchString = baseName
       if -1 == headers[i].find('/', baseIdx):
-        blockHeaders.append(headers[i])
-        self.logger.info("write header: {0}".format(headers[i]))
+        if len(headers[i]) > baseIdx:
+          blockHeaders.append(headers[i])
+          self.logger.info("write header: {0}".format(headers[i]))
+        else:
+          saveHeaders.append(headers[i])
       else:
         saveHeaders.append(headers[i])
     self.writeInstallHeadersBlock(baseName.replace("/", "_") + searchString.replace("/", "_"), blockHeaders,baseName)
@@ -231,7 +234,7 @@ class CmakeFileWriter():
       for i in range(len(headers)):
         rIdxAct = headers[i].rfind("/")
         if rIdxAct == rIdx:
-          idx = headers[i].find(searchString)
+          idx = headers[i].find(searchString,baseIdx-1)
           if idx == baseIdx-1:
             self.logger.info("write header: {0}".format(headers[i]))
             blockHeaders.append(headers[i])
@@ -242,6 +245,16 @@ class CmakeFileWriter():
       if blockHeaders:
         self.writeInstallHeadersBlock(baseName.replace("/", "_") + searchString.replace("/", "_"), blockHeaders,baseName)
       headers = saveHeaders
+
+  def writeInstallHeadersBsp(self, headers, baseName):
+    saveHeaders = []
+    for i in range(len(headers)):
+      idx = headers[i].find("/bspopts.h")
+      if -1 == idx:
+        saveHeaders.append(headers[i])
+
+    self.writeInstallHeaders(saveHeaders, baseName)
+
 
 class KernelCmakeFileWriter(CmakeFileWriter):
 
@@ -391,6 +404,13 @@ class BspCmakeFileWriter(CmakeFileWriter):
     ifIsOpen = 0
     clauses = switch.getClauses()
 
+
+    tn = switch.getName()
+    idx = tn.find("STM32F4_ENABLE_I2C1")
+    if -1 != idx:
+      self.logger.info("Switch: {0}".format(switch.getName()))
+
+
     if 1 == len(clauses):
 
       if "" != clauses[0].getValue():
@@ -418,20 +438,21 @@ class BspCmakeFileWriter(CmakeFileWriter):
 
   def writeSwitchStart(self, pfx, clause):
 
-    clause = clause.replace("*", ".*")
+    clause = clause.replace("*", "")
 
     if pfx == "else":
       self.cmFile.write("else()\n")
+
     else:
-      self.cmFile.write("{0}(${{BSP_NAME}} MATCHES \"{1}\")\n".format(pfx, clause))
+      self.cmFile.write("{0}(${{RTEMS_BSP}} MATCHES \"{1}\")\n".format(pfx, clause))
 
   def writeSwitch(self, name, value):
     if value:
       self.cmFile.write("set({0} {1} CACHE INTERNAL \"{2}\")\n".format(name, value, name))
-
+    else:
+      self.cmFile.write("message(\"\") #dummy\n")
   def writeBspCmakeExport(self,targets):
 
-#    self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
-
-#    self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
-    return
+    self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
+    self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
+    

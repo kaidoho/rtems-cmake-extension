@@ -277,7 +277,7 @@ if __name__ == '__main__':
     envArgs.add_argument('-ndir','--ninjabindir', help='path to the directory containing ninja executable'  , default='D:/projects/ninja/ninja.exe')
     optional.add_argument('-tcroot',   help='must point to the root directory of the toolchain ',default="D:/projects/arm-rtems5-kernel-5-1")
 
-  optional.add_argument('-bsp',   help='enter the BSP',default="nucleo-stm32f746zg")
+  optional.add_argument('-bsp',   help='enter the BSP',default="stm32f4")#"nucleo-stm32f746zg")
 
   optional.add_argument('--enable-multiprocessing', help='enable multiprocessing interface' \
                           'the multiprocessing interface is a communication '\

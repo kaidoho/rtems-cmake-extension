@@ -132,6 +132,9 @@ class CfgParser():
         if -1 != idx:
           line = line[idx + len(searchString):]
           line = line.rstrip()
+          idxN = line.rfind("../")
+          if - 1 != idxN:
+            line = line[idxN +len("../"):]
           self.logger.info("o:writeIn {0}".format(destPath + line))
           headerFiles.append(destPath + line)
         linenumber = linenumber + 1;
@@ -204,10 +207,13 @@ class CpukitParser(CfgParser):
 
 
 class BspParser(CfgParser):
+  headerFilesBsp = []
+
   def __init__(self, topDir, makefileDir, logger):
     super().__init__(logger)
     self.setSrcDir(topDir)
     self.makeFile = makefileDir + "/Makefile.am"
+    self.headerFilesBsp = []
     return
 
   def parseMakefile(self):
@@ -239,6 +245,11 @@ class BspParser(CfgParser):
 
     sourceFolder = os.path.abspath(self.getSrcDir() + "/bsps/" + cpuName + "/" + bspName)
 
+
+    self.headerFilesBsp = self.findTargetHeaderFiles(sourceFolder,
+                                           "${PROJECT_SOURCE_DIR}"+ "/")
+
+
     mWriter = BspCmakeFileWriter(self.logger, sourceFolder, self.getSrcDir())
     mWriter.writeBspCmakeFileHeader()
 
@@ -250,6 +261,7 @@ class BspParser(CfgParser):
 
     mWriter.writeAllTargetSourceFiles(self.libraryObjs)
     mWriter.writeLibraryTargets(self.libraryObjs)
+    mWriter.writeInstallHeadersBsp(self.headerFilesBsp, "/include/")
     mWriter.writeBspCmakeExport(self.libraryObjs)
 
   def appendCfgInBspOpts(self, cfgFile, outFile):
@@ -274,6 +286,8 @@ class BspParser(CfgParser):
       self.writeCfgInBspOptsSwitch(cfgFile, outFile, names[i])
 
   def writeCfgInBspOptsHeader(self, outFile):
+    outFile.write("/* BSP dependent options file */\n")
+    outFile.write("/* automatically generated -- DO NOT EDIT!! */\n\n")
     outFile.write("#ifndef __BSP_OPTIONS_H\n")
     outFile.write("#define __BSP_OPTIONS_H\n\n")
 
