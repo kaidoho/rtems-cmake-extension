@@ -33,7 +33,7 @@ import shutil
 import logging
 import glob
 
-from subprocess import *
+from Modules.ParserUtils import *
 
 logFormatter = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s",datefmt='%Y-%m-%d %H:%M:%S')
 rootLogger = logging.getLogger()
@@ -45,19 +45,6 @@ rootLogger.addHandler(consoleHandler)
 
 
 
-def run_cmd(cmd, workdir):
-#  if sys.platform == "linux" or sys.platform == "linux2":
-#    cmd = " ".join(str(x) for x in cmd)
-
-  p = Popen(cmd, stdout=PIPE, stderr=STDOUT, bufsize=1,  cwd=workdir)
-
-
-  for line in iter(p.stdout.readline, b''):
-    tmp = str(line)
-
-    logger.info(tmp[2:len(tmp)-3])
-  p.stdout.close()
-  p.wait()
 
 def run_cmake(tcroot,tcdef,rtemsFolder, installfolder,cmakeBinDir,ninjaBinDir,workdir,\
 rtemsCpu, bspName, enable_networking , enable_posix , enable_multiprocessing , enable_smp , \
@@ -277,7 +264,7 @@ if __name__ == '__main__':
     envArgs.add_argument('-ndir','--ninjabindir', help='path to the directory containing ninja executable'  , default='D:/projects/ninja/ninja.exe')
     optional.add_argument('-tcroot',   help='must point to the root directory of the toolchain ',default="D:/projects/arm-rtems5-kernel-5-1")
 
-  optional.add_argument('-bsp',   help='enter the BSP',default="stm32f4")#"nucleo-stm32f746zg")
+  optional.add_argument('-bsp',   help='enter the BSP',default="nucleo-stm32f746zg") #"stm32f4")#
 
   optional.add_argument('--enable-multiprocessing', help='enable multiprocessing interface' \
                           'the multiprocessing interface is a communication '\

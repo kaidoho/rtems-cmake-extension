@@ -135,7 +135,6 @@ class CfgParser():
           idxN = line.rfind("../")
           if - 1 != idxN:
             line = line[idxN +len("../"):]
-          self.logger.info("o:writeIn {0}".format(destPath + line))
           headerFiles.append(destPath + line)
         linenumber = linenumber + 1;
         line = f.readline()
@@ -290,6 +289,16 @@ class BspParser(CfgParser):
     outFile.write("/* automatically generated -- DO NOT EDIT!! */\n\n")
     outFile.write("#ifndef __BSP_OPTIONS_H\n")
     outFile.write("#define __BSP_OPTIONS_H\n\n")
+
+    outFile.write("// The RTEMS BSP name\n")
+    outFile.write("#cmakedefine RTEMS_BSP @RTEMS_BSP@\n\n")
+
+    outFile.write("// If defined, then the BSP Framework will put a non - zero pattern into \n")
+    outFile.write("// the RTEMS Workspace and C program heap.This should assist in finding \n")
+    outFile.write("// code that assumes memory starts set to zero \n")
+
+    outFile.write("#cmakedefine01 BSP_DIRTY_MEMORY @BSP_DIRTY_MEMORY@\n\n")
+
 
   def writeCfgInBspOptsEnd(self, outFile):
     outFile.write("\n#endif // __BSP_OPTIONS_H\n")

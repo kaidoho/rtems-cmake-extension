@@ -185,15 +185,9 @@ class CmakeFileWriter():
 
   def writeInstallHeadersBlock(self, blockName, headers, baseName):
     self.cmFile.write("set(INSTALL_HEADERS{0} \n".format(blockName))
-
     for i in range(len(headers)):
       self.cmFile.write("{0}\n".format(headers[i]))
-
     self.cmFile.write(") \n")
-    self.logger.info("base: {0}".format(baseName))
-    self.logger.info("block: {0}".format(blockName))
-    self.logger.info("header: {0}".format(headers[0]))
-
     idxL = headers[0].find(baseName) +len(baseName)
     idxR = headers[0].rfind("/")
     dest = "${CMAKE_INSTALL_PREFIX}/include/" + headers[0][idxL:idxR]
@@ -213,7 +207,6 @@ class CmakeFileWriter():
       if -1 == headers[i].find('/', baseIdx):
         if len(headers[i]) > baseIdx:
           blockHeaders.append(headers[i])
-          self.logger.info("write header: {0}".format(headers[i]))
         else:
           saveHeaders.append(headers[i])
       else:
@@ -222,7 +215,6 @@ class CmakeFileWriter():
 
     headers = saveHeaders
 
-    self.logger.info("First run ok")
     # loop over all source files
     while len(headers) > 0:
       saveHeaders = []
@@ -230,13 +222,11 @@ class CmakeFileWriter():
       rIdx = headers[0].rfind("/")
       searchString = headers[0]
       searchString = searchString[baseIdx-1:rIdx]
-      self.logger.info("Check header {0}".format(headers[0]))
       for i in range(len(headers)):
         rIdxAct = headers[i].rfind("/")
         if rIdxAct == rIdx:
           idx = headers[i].find(searchString,baseIdx-1)
           if idx == baseIdx-1:
-            self.logger.info("write header: {0}".format(headers[i]))
             blockHeaders.append(headers[i])
           else:
             saveHeaders.append(headers[i])
@@ -274,10 +264,12 @@ class KernelCmakeFileWriter(CmakeFileWriter):
 
   def writeKernelCmakeExport(self,targets):
 
+    self.cmFile.write("include(CMakePackageConfigHelpers)\n\n")
+
     self.cmFile.write("set(CPU_HEADER_DIR ${CPU_HEADER_DIR} CACHE INTERNAL \"CPU_HEADER_DIR\")\n")
     self.cmFile.write("set(RTEMS_LIBS ${RTEMS_LIBS} CACHE INTERNAL \"RTEMS_LIBS\")\n")
     self.cmFile.write("install(TARGETS ${RTEMS_LIBS}\n")
-    self.cmFile.write("\tEXPORT kernel-targets\n")
+    self.cmFile.write("\tEXPORT rtems-kernel-targets\n")
     self.cmFile.write("\tARCHIVE DESTINATION lib\n")
     self.cmFile.write("\tPUBLIC_HEADER DESTINATION include\n")
     self.cmFile.write(")\n\n")
@@ -285,17 +277,28 @@ class KernelCmakeFileWriter(CmakeFileWriter):
     self.cmFile.write("set(INSTALL_CONFIGDIR \"${CMAKE_INSTALL_PREFIX}/cmake\")\n\n")
 
 
-    self.cmFile.write("install(EXPORT kernel-targets\n")
+    self.cmFile.write("install(EXPORT rtems-kernel-targets\n")
     self.cmFile.write("\tFILE\n")
     self.cmFile.write("\t\t${CMAKE_PROJECT_NAME}Targets.cmake\n")
     self.cmFile.write("\tDESTINATION\n")
     self.cmFile.write("\t\t${INSTALL_CONFIGDIR}\n")
     self.cmFile.write(")\n\n")
-    #self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/cpukit/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n\n")
+
+
+    self.cmFile.write("configure_package_config_file(${PROJECT_SOURCE_DIR}/cmake/find/RtemsConfig.cmake.in\n")
+    self.cmFile.write("\t${CMAKE_CURRENT_BINARY_DIR}/RtemsConfig.cmake\n")
+    self.cmFile.write("\tINSTALL_DESTINATION ${INSTALL_CONFIGDIR}\n")
+    self.cmFile.write(")\n")
+
+    self.cmFile.write("install(FILES\n")
+    self.cmFile.write("\t${CMAKE_CURRENT_BINARY_DIR}/RtemsConfig.cmake\n")
+    self.cmFile.write("\tDESTINATION ${INSTALL_CONFIGDIR}\n")
+    self.cmFile.write(")\n")
+
     self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/cpukit/score/cpu/${RTEMS_CPU}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n\n")
-    #self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/cpukit/libnetworking/sys DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
-    #self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/cpukit/libnetworking/rtems DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
-    #self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/cpukit/libnetworking/machine DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
+
+
+
 class BspCmakeFileWriter(CmakeFileWriter):
 
   def __init__(self, logger, sourceFolder, topDir):
@@ -454,5 +457,19 @@ class BspCmakeFileWriter(CmakeFileWriter):
   def writeBspCmakeExport(self,targets):
 
     self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
-    self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
-    
+    self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n\n")
+
+    self.cmFile.write("install(TARGETS rtemsbsp\n")
+    self.cmFile.write("\tEXPORT rtems-bsp-targets\n")
+    self.cmFile.write("\tARCHIVE DESTINATION lib\n")
+    self.cmFile.write("\tPUBLIC_HEADER DESTINATION include\n")
+    self.cmFile.write(")\n\n")
+
+    self.cmFile.write("set(INSTALL_CONFIGDIR \"${CMAKE_INSTALL_PREFIX}/cmake\")\n\n")
+
+    self.cmFile.write("install(EXPORT rtems-bsp-targets\n")
+    self.cmFile.write("\tFILE\n")
+    self.cmFile.write("\t\tBspTargets.cmake\n")
+    self.cmFile.write("\tDESTINATION\n")
+    self.cmFile.write("\t\t${INSTALL_CONFIGDIR}\n")
+    self.cmFile.write(")\n")
