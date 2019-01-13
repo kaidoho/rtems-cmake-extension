@@ -32,7 +32,7 @@ class CfgParser():
   __sourceDir = ""
   makeFile = ""
   libraryObjs = []
-  headerFiles = []
+
 
   def __init__(self, logger):
     super().__init__()
@@ -121,6 +121,7 @@ class CfgParser():
   def findTargetHeaderFiles(self, headerPath, destPath):
     headerFile = headerPath + "/headers.am"
     linenumber = 1
+    headerFiles = []
     searchString = "_HEADERS += "
     self.logger.info("Headerfile: {0}".format(headerFile))
 
@@ -131,9 +132,11 @@ class CfgParser():
         if -1 != idx:
           line = line[idx + len(searchString):]
           line = line.rstrip()
-          self.headerFiles.append(destPath + line)
+          self.logger.info("o:writeIn {0}".format(destPath + line))
+          headerFiles.append(destPath + line)
         linenumber = linenumber + 1;
         line = f.readline()
+    return headerFiles
 
   def findTargetCompilerFlags(self, target, makefile):
     linenumber = 1
@@ -165,18 +168,22 @@ class CfgParser():
 
 
 class CpukitParser(CfgParser):
-
+  headerFilesNetworking = []
+  headerFilesKernel = []
   def __init__(self, topDir, logger):
     super().__init__(logger)
     self.setSrcDir(topDir)
     self.makeFile = self.getSrcDir() + "/cpukit/Makefile.am"
+    self.headerFilesNetworking = []
+    self.headerFilesKernel = []
     return
 
   def parseMakefile(self):
     self.logger.info("Starting to parse Kernel Makefile: {0}".format(self.makeFile))
     self.findTargets("project_lib_LIBRARIES += ")
 
-    self.findTargetHeaderFiles(os.path.dirname(os.path.abspath(self.makeFile)), "${PROJECT_SOURCE_DIR}/cpukit/")
+    self.headerFilesKernel = self.findTargetHeaderFiles(os.path.dirname(os.path.abspath(self.makeFile)), "${PROJECT_SOURCE_DIR}/cpukit/")
+    self.headerFilesNetworking = self.findTargetHeaderFiles(os.path.dirname(os.path.abspath(self.makeFile))+"/libnetworking", "${PROJECT_SOURCE_DIR}/cpukit/")
 
     for i in range(len(self.libraryObjs)):
       self.findTargetDependencies(self.libraryObjs[i], self.makeFile)
@@ -191,7 +198,8 @@ class CpukitParser(CfgParser):
     mWriter.writeLibraryTargets(self.libraryObjs)
     mWriter.writeKernelTargetsList(self.libraryObjs)
 
-    mWriter.writeInstallHeaders(self.headerFiles)
+    mWriter.writeInstallHeaders(self.headerFilesKernel,"/include/")
+    mWriter.writeInstallHeaders(self.headerFilesNetworking,"/libnetworking/")
     mWriter.writeKernelCmakeExport(self.libraryObjs)
 
 

@@ -183,57 +183,64 @@ class CmakeFileWriter():
     for i in range(len(targets)):
       self.writeLibraryTarget(targets[i])
 
-  def writeInstallHeadersBlock(self, blockName, headers):
+  def writeInstallHeadersBlock(self, blockName, headers, baseName):
     self.cmFile.write("set(INSTALL_HEADERS{0} \n".format(blockName))
 
     for i in range(len(headers)):
       self.cmFile.write("{0}\n".format(headers[i]))
 
     self.cmFile.write(") \n")
+    self.logger.info("base: {0}".format(baseName))
+    self.logger.info("block: {0}".format(blockName))
+    self.logger.info("header: {0}".format(headers[0]))
 
-    idxL = headers[0].find("/include") +len("/include")
+    idxL = headers[0].find(baseName) +len(baseName)
     idxR = headers[0].rfind("/")
-    dest = "${CMAKE_INSTALL_PREFIX}/include" + headers[0][idxL:idxR]
+    dest = "${CMAKE_INSTALL_PREFIX}/include/" + headers[0][idxL:idxR]
     self.cmFile.write("install(FILES ${{INSTALL_HEADERS{0}}} DESTINATION {1})\n\n".format(blockName,dest))
 
-  def writeInstallHeaders(self, headers):
+  def writeInstallHeaders(self, headers, baseName):
 
     blockHeaders = []
     saveHeaders = []
 
-    searchString = "/include/"
+    searchString = baseName
     baseIdx = headers[0].find(searchString)
     baseIdx = baseIdx + len(searchString)
 
     for i in range(len(headers)):
-      searchString = "/include/"
+      searchString = baseName
       if -1 == headers[i].find('/', baseIdx):
         blockHeaders.append(headers[i])
+        self.logger.info("write header: {0}".format(headers[i]))
       else:
         saveHeaders.append(headers[i])
-    self.writeInstallHeadersBlock("", blockHeaders)
+    self.writeInstallHeadersBlock(baseName.replace("/", "_") + searchString.replace("/", "_"), blockHeaders,baseName)
+
     headers = saveHeaders
+
+    self.logger.info("First run ok")
     # loop over all source files
     while len(headers) > 0:
       saveHeaders = []
       blockHeaders = []
       rIdx = headers[0].rfind("/")
       searchString = headers[0]
-      searchString = searchString[baseIdx:rIdx]
-      self.logger.info("Hallo: " + headers[0])
-      self.logger.info("Hallo: " + searchString)
-
+      searchString = searchString[baseIdx-1:rIdx]
+      self.logger.info("Check header {0}".format(headers[0]))
       for i in range(len(headers)):
         rIdxAct = headers[i].rfind("/")
         if rIdxAct == rIdx:
           idx = headers[i].find(searchString)
-          if idx == baseIdx:
+          if idx == baseIdx-1:
+            self.logger.info("write header: {0}".format(headers[i]))
             blockHeaders.append(headers[i])
           else:
             saveHeaders.append(headers[i])
         else:
           saveHeaders.append(headers[i])
-      self.writeInstallHeadersBlock("_"+searchString.replace("/", "_"), blockHeaders)
+      if blockHeaders:
+        self.writeInstallHeadersBlock(baseName.replace("/", "_") + searchString.replace("/", "_"), blockHeaders,baseName)
       headers = saveHeaders
 
 class KernelCmakeFileWriter(CmakeFileWriter):
@@ -444,6 +451,6 @@ class BspCmakeFileWriter(CmakeFileWriter):
     #self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/cpukit/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n\n")
     #self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/cpukit/score/cpu/${RTEMS_CPU}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n\n")
 
-    self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/include DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
+    self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")
 
     self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n")

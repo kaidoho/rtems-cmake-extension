@@ -205,7 +205,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR}/_generated/bsp)
 
 #install(FILES ${CMAKE_CURRENT_BINARY_DIR}/_generated/config.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
 #install(FILES ${CMAKE_CURRENT_BINARY_DIR}/_generated/version-vc-key.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
-#install(FILES ${CMAKE_CURRENT_BINARY_DIR}/_generated/rtems/score/cpuopts.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rtems/score)
-#install(FILES ${CMAKE_CURRENT_BINARY_DIR}/_generated/bsp/bspopts.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/_generated/rtems/score/cpuopts.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/rtems/score)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/_generated/bsp/bspopts.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
 
 endfunction()
