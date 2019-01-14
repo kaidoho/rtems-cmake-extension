@@ -1,11 +1,10 @@
 get_filename_component(RTEMS_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-
-include(${RTEMS_CMAKE_DIR}/RTEMSTargets.cmake)
+include(${RTEMS_CMAKE_DIR}/BspTargets.cmake)
+include(${RTEMS_CMAKE_DIR}/RtemsTargets.cmake)
 
 set(RTEMS_INCLUDE_DIRS  ${RTEMS_CMAKE_DIR}/../include)
 set(RTEMS_LIB_INSTALL_DIR  ${RTEMS_CMAKE_DIR}/../lib)
-set(RTEMS_STARTUP_FILE  ${RTEMS_CMAKE_DIR}/../startup/start.S)
 set(RTEMS_LINKER_SCRIPT_DIR  ${RTEMS_CMAKE_DIR}/../linker)
 
 mark_as_advanced(RTEMS_STARTUP_FILE RTEMS_INCLUDE_DIRS RTEMS_LINKER_SCRIPT_DIR)

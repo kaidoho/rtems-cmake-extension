@@ -24,7 +24,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
-from Modules.ParserUtils import *
+from Modules.Utils import *
 
 
 class CmakeFileWriter():
@@ -269,31 +269,35 @@ class KernelCmakeFileWriter(CmakeFileWriter):
     self.cmFile.write("set(CPU_HEADER_DIR ${CPU_HEADER_DIR} CACHE INTERNAL \"CPU_HEADER_DIR\")\n")
     self.cmFile.write("set(RTEMS_LIBS ${RTEMS_LIBS} CACHE INTERNAL \"RTEMS_LIBS\")\n")
     self.cmFile.write("install(TARGETS ${RTEMS_LIBS}\n")
-    self.cmFile.write("\tEXPORT rtems-kernel-targets\n")
-    self.cmFile.write("\tARCHIVE DESTINATION lib\n")
-    self.cmFile.write("\tPUBLIC_HEADER DESTINATION include\n")
+    self.cmFile.write("  EXPORT rtems-kernel-targets\n")
+    self.cmFile.write("  ARCHIVE DESTINATION lib\n")
+    self.cmFile.write("  PUBLIC_HEADER DESTINATION include\n")
     self.cmFile.write(")\n\n")
 
     self.cmFile.write("set(INSTALL_CONFIGDIR \"${CMAKE_INSTALL_PREFIX}/cmake\")\n\n")
 
 
     self.cmFile.write("install(EXPORT rtems-kernel-targets\n")
-    self.cmFile.write("\tFILE\n")
-    self.cmFile.write("\t\t${CMAKE_PROJECT_NAME}Targets.cmake\n")
-    self.cmFile.write("\tDESTINATION\n")
-    self.cmFile.write("\t\t${INSTALL_CONFIGDIR}\n")
+    self.cmFile.write("  FILE RtemsTargets.cmake\n")
+    self.cmFile.write("  DESTINATION ${INSTALL_CONFIGDIR}\n")
     self.cmFile.write(")\n\n")
 
 
     self.cmFile.write("configure_package_config_file(${PROJECT_SOURCE_DIR}/cmake/find/RtemsConfig.cmake.in\n")
-    self.cmFile.write("\t${CMAKE_CURRENT_BINARY_DIR}/RtemsConfig.cmake\n")
-    self.cmFile.write("\tINSTALL_DESTINATION ${INSTALL_CONFIGDIR}\n")
-    self.cmFile.write(")\n")
+    self.cmFile.write("  ${CMAKE_CURRENT_BINARY_DIR}/RtemsConfig.cmake\n")
+    self.cmFile.write("  INSTALL_DESTINATION ${INSTALL_CONFIGDIR}\n")
+    self.cmFile.write(")\n\n")
 
     self.cmFile.write("install(FILES\n")
-    self.cmFile.write("\t${CMAKE_CURRENT_BINARY_DIR}/RtemsConfig.cmake\n")
-    self.cmFile.write("\tDESTINATION ${INSTALL_CONFIGDIR}\n")
-    self.cmFile.write(")\n")
+    self.cmFile.write("  ${CMAKE_CURRENT_BINARY_DIR}/RtemsConfig.cmake\n")
+    self.cmFile.write("  DESTINATION ${INSTALL_CONFIGDIR}\n")
+    self.cmFile.write(")\n\n")
+
+    self.cmFile.write("install(FILES\n")
+    self.cmFile.write("  ${CMAKE_TOOLCHAIN_FILE}\n")
+    self.cmFile.write("  DESTINATION ${INSTALL_CONFIGDIR}\n")
+    self.cmFile.write(")\n\n")
+
 
     self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/cpukit/score/cpu/${RTEMS_CPU}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n\n")
 
@@ -460,16 +464,35 @@ class BspCmakeFileWriter(CmakeFileWriter):
     self.cmFile.write("install(DIRECTORY ${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/include/ DESTINATION ${CMAKE_INSTALL_PREFIX}/include)\n\n")
 
     self.cmFile.write("install(TARGETS rtemsbsp\n")
-    self.cmFile.write("\tEXPORT rtems-bsp-targets\n")
-    self.cmFile.write("\tARCHIVE DESTINATION lib\n")
-    self.cmFile.write("\tPUBLIC_HEADER DESTINATION include\n")
+    self.cmFile.write("  EXPORT rtems-bsp-targets\n")
+    self.cmFile.write("  ARCHIVE DESTINATION lib\n")
+    self.cmFile.write("  PUBLIC_HEADER DESTINATION include\n")
     self.cmFile.write(")\n\n")
 
     self.cmFile.write("set(INSTALL_CONFIGDIR \"${CMAKE_INSTALL_PREFIX}/cmake\")\n\n")
 
     self.cmFile.write("install(EXPORT rtems-bsp-targets\n")
-    self.cmFile.write("\tFILE\n")
-    self.cmFile.write("\t\tBspTargets.cmake\n")
-    self.cmFile.write("\tDESTINATION\n")
-    self.cmFile.write("\t\t${INSTALL_CONFIGDIR}\n")
-    self.cmFile.write(")\n")
+    self.cmFile.write("  FILE BspTargets.cmake\n")
+    self.cmFile.write("  DESTINATION ${INSTALL_CONFIGDIR}\n")
+    self.cmFile.write(")\n\n")
+
+    self.cmFile.write("file(GLOB CPU_LINKER_FILES \"${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/shared/start/linkcmds.*\")\n")
+    self.cmFile.write("install(FILES ${CPU_LINKER_FILES} DESTINATION ${CMAKE_INSTALL_PREFIX}/linker)\n\n")
+    self.cmFile.write("install(FILES ${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/${RTEMS_BSP_DIR_NAME}/start/bsp_specs DESTINATION ${CMAKE_INSTALL_PREFIX}/linker)\n\n")
+
+    self.cmFile.write("if(EXISTS \"${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/${RTEMS_BSP_DIR_NAME}/start/linkcmds.${RTEMS_BSP}\")\n")
+    self.cmFile.write("install(FILES \n")
+    self.cmFile.write("  ${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/${RTEMS_BSP_DIR_NAME}/start/linkcmds.${RTEMS_BSP}\n")
+    self.cmFile.write("  DESTINATION ${CMAKE_INSTALL_PREFIX}/linker\n")
+    self.cmFile.write("  RENAME linkcmds)\n")
+    self.cmFile.write("endif()\n\n")
+    
+    self.cmFile.write("if(EXISTS \"${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/shared/start/start.S\")\n")
+    self.cmFile.write("  add_library(start OBJECT ${PROJECT_SOURCE_DIR}/bsps/${RTEMS_CPU}/shared/start/start.S )\n")
+    self.cmFile.write("  add_dependencies(rtemsbsp start)\n")
+    self.cmFile.write("  add_custom_command(TARGET rtemsbsp POST_BUILD\n")
+    self.cmFile.write("    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:start> ${CMAKE_INSTALL_PREFIX}/lib/start.o\n")
+    self.cmFile.write("  )\n")
+    self.cmFile.write("endif()\n\n")
+
+
