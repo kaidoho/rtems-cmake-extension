@@ -1,9 +1,9 @@
 set(CMAKE_SYSTEM_NAME  Generic)
-SET(CMAKE_SYSTEM_PROCESSOR arm)
+SET(CMAKE_SYSTEM_PROCESSOR m68k)
 SET(CMAKE_CROSSCOMPILING  1)
 
-set(RTEMS_CPU  "arm")
-set(RTEMS_CC_PREFIX  "arm-rtems5")
+set(RTEMS_CPU  "m68k")
+set(RTEMS_CC_PREFIX  "m68k-rtems5")
 
 IF(WIN32)
   set(EXE_SUFFIX  ".exe")
@@ -19,8 +19,8 @@ set(CMAKE_AR  ${RTEMS_TC_ROOT}/bin/${RTEMS_CC_PREFIX}-ar${EXE_SUFFIX} CACHE INTE
 set(CMAKE_RANLIB  ${RTEMS_TC_ROOT}/bin/${RTEMS_CC_PREFIX}-ranlib${EXE_SUFFIX} CACHE INTERNAL "Ranlib")
 set(CMAKE_LINKER  ${RTEMS_TC_ROOT}/bin/${RTEMS_CC_PREFIX}-ld${EXE_SUFFIX} CACHE INTERNAL "Linker")
 
-set(CPU_FLAGS " -mcpu=cortex-m7 -march=armv7e-m -mfloat-abi=hard -mfpu=fpv5-d16 -mthumb -mthumb-interwork -DSTM32F746xx")
-set(OPT_FLAGS "-ffunction-sections -fdata-sections  -O0 -g -ffunction-sections -fdata-sections")
+set(CPU_FLAGS " -mcfv4e -Wa,-memac")
+set(OPT_FLAGS "-ffunction-sections -fdata-sections  -O2 -g -fomit-frame-pointer -ffunction-sections -fdata-sections")
 set(AUX_FLAGS "")
 set(RTEMS_FLAGS "-Wall -Wmissing-prototypes -Wimplicit-function-declaration -Wstrict-prototypes  -Wnested-externs")
 set(RTEMS_LINK_FLAGS "-B${BSP_SPEC_FOLDER} -qrtems --specs bsp_specs -Wl,--wrap=printf -Wl,--wrap=puts -Wl,--wrap=putchar")

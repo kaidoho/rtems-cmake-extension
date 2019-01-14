@@ -26,7 +26,7 @@
 
 import argparse
 from Modules.ConfigParser import *
-
+from Modules.CreateToolchainFiles import *
 
 
 def get_rtems_src_dir(rDir):
@@ -96,15 +96,12 @@ if __name__ == '__main__':
 
     searchPath = rtemsFolder + "/c/src/lib/libbsp/**/Makefile.am"
     BspParsers = []
-
+    check_toolchain_files(rtemsFolder, currentWorkDir + "/cmake/RTEMS/cmake/toolchain")
     bspCount = 0
     for filename in glob.iglob(searchPath, recursive=True):
         bspName = filename[filename.find("libbsp") + 7:]
         bspName = bspName[:bspName.find("Makefile.am")]
         bspName = bspName[:-1]
-        projSourceDir = rtemsFolder + "/bsps/" + bspName
-        projSourceDir = projSourceDir.replace("\\", "/")
-
         bspName = bspName.replace("\\", "-")
         bspName = bspName.replace("/", "-")
         idx = bspName.find("qemu_fakerom")

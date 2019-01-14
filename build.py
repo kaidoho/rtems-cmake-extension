@@ -301,7 +301,7 @@ if __name__ == "__main__":
 
       tcDef = rtemsFolder + "/cmake/toolchain/" + args.bsp + ".cmake"
 
-      prepare_build(tcRoot, rtemsFolder, args.bsp, buildfolder,rtemsCpu)
+      #prepare_build(tcRoot, rtemsFolder, args.bsp, buildfolder,rtemsCpu)
 
 
 

@@ -60,15 +60,13 @@ def compareLists(lA, lB):
   return 0
 
 def run_cmd(cmd, workdir):
-#  if sys.platform == "linux" or sys.platform == "linux2":
-#    cmd = " ".join(str(x) for x in cmd)
-
   p = Popen(cmd, stdout=PIPE, stderr=STDOUT, bufsize=1,  cwd=workdir)
-
 
   for line in iter(p.stdout.readline, b''):
     tmp = str(line)
     if tmp.endswith("\\r\\n'"):
+      logger.info(tmp[2:len(tmp)-5])
+    elif tmp.endswith("\\r\\n\""):
       logger.info(tmp[2:len(tmp)-5])
     else:
       logger.info(tmp[2:len(tmp)-3])
