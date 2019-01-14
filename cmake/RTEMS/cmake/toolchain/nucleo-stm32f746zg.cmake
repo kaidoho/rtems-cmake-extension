@@ -39,7 +39,7 @@ set(RTEMS_FLAGS "-Wall -Wmissing-prototypes -Wimplicit-function-declaration -Wst
 set(RTEMS_LINK_FLAGS "-B${BSP_SPEC_FOLDER} -qrtems  --specs bsp_specs  -Wl,--wrap=printf -Wl,--wrap=puts -Wl,--wrap=putchar")
 
 set(CMAKE_C_FLAGS    "${CPU_FLAGS} ${AUX_FLAGS} ${OPT_FLAGS} ${RTEMS_FLAGS} -std=gnu99" CACHE INTERNAL "C Flags")
-#-qrtems -B${exec_prefix}/lib/ -B${libdir}/ --specs bsp_specs ${CFLAGS}
+SET(CMAKE_ASM_FLAGS  "${CPU_FLAGS} -x assembler-with-cpp")
 
 #${BSP_LINKER_FILE}
 #set(CMAKE_EXE_LINKER_FLAGS_INIT "-L${PREBUILD_LIB_DIR} ${RTEMS_LINK_FLAGS} -Wl,--gc-sections -Wl,-print-memory-usage -Wl,-Map=out.map")
