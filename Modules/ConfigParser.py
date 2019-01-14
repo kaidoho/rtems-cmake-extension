@@ -79,7 +79,7 @@ class CfgParser():
   # Find all source files which belong to this target. Some source may only be added if a certain build switch
   # (e.g. --enable-networking) was given. Additionally, get the depth of the "if" blocks in which this lib is
   # contained.
-  def findTargetSourceFiles(self, target, makefile):
+  def findTargetSourceFiles(self, target, makefile, makefileToplevel):
     linenumber = 1
     nFiles = 0
     with open(makefile, 'r') as f:
@@ -105,7 +105,7 @@ class CfgParser():
 
         if 0 == idx:
           line = line[len(findsting):]
-          pMake = os.path.dirname(os.path.abspath(makefile))
+          pMake = os.path.dirname(os.path.abspath(makefileToplevel))
           line = pMake + "/" + line
           sfile = SourceFile(self.logger, os.path.abspath(line))
           sfile.setDependencyDepth(dependencyDepth)
@@ -117,6 +117,24 @@ class CfgParser():
           sys.exit()
         linenumber = linenumber + 1;
         line = f.readline()
+
+      #check if makefile includes irq-sources.am
+      with open(makefile, 'r') as f:
+        line = f.readline()
+        while line:
+          idx = line.find('irq-sources.am')
+          if -1 != idx:
+            self.findTargetSourceFiles(target, self.getSrcDir()+ "/bsps/shared/irq-sources.am" , makefile)
+          line = f.readline()
+
+      #check if makefile includes shared-sources.am
+      with open(makefile, 'r') as f:
+        line = f.readline()
+        while line:
+          idx = line.find('shared-sources.am')
+          if -1 != idx:
+            self.findTargetSourceFiles(target, self.getSrcDir()+ "/bsps/shared/shared-sources.am" , makefile)
+          line = f.readline()
 
   def findTargetHeaderFiles(self, headerPath, destPath):
     headerFile = headerPath + "/headers.am"
@@ -189,7 +207,7 @@ class CpukitParser(CfgParser):
 
     for i in range(len(self.libraryObjs)):
       self.findTargetDependencies(self.libraryObjs[i], self.makeFile)
-      self.findTargetSourceFiles(self.libraryObjs[i], self.makeFile)
+      self.findTargetSourceFiles(self.libraryObjs[i], self.makeFile, self.makeFile)
       self.findTargetCompilerFlags(self.libraryObjs[i], self.makeFile)
       self.logger.info("Found lib: {0} contains {1} source files".format(self.libraryObjs[i].getName(),
                                                                          self.libraryObjs[i].getNumberOfSourceFiles()))
@@ -221,7 +239,7 @@ class BspParser(CfgParser):
 
     for i in range(len(self.libraryObjs)):
       self.findTargetDependencies(self.libraryObjs[i], self.makeFile)
-      self.findTargetSourceFiles(self.libraryObjs[i], self.makeFile)
+      self.findTargetSourceFiles(self.libraryObjs[i], self.makeFile, self.makeFile)
       self.findTargetCompilerFlags(self.libraryObjs[i], self.makeFile)
       self.logger.info("Found lib: {0} contains {1} source files".format(self.libraryObjs[i].getName(),
                                                                          self.libraryObjs[i].getNumberOfSourceFiles()))

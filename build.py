@@ -223,7 +223,7 @@ if __name__ == "__main__":
     optArgs.add_argument("-tcRoot",   help="must point to the root directory of the toolchain ",
                          default="D:/projects/arm-rtems5-kernel-5-1")
 
-  optArgs.add_argument("-bsp",   help="enter the BSP",default="nucleo-stm32f746zg") #"stm32f4")#
+  optArgs.add_argument("-bsp",   help="enter the BSP",default="stm32f4")#"nucleo-stm32f746zg") #"stm32f4")#
 
   optArgs.add_argument("--enable-multiprocessing", help="enable multiprocessing interface" \
                           "the multiprocessing interface is a communication "\
