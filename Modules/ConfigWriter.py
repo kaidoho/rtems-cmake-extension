@@ -254,7 +254,6 @@ class KernelCmakeFileWriter(CmakeFileWriter):
   def writeKernelCmakeFileHeader(self):
     self.writeCmakeFileHeader()
     self.cmFile.write("include_directories (\"${PROJECT_SOURCE_DIR}/cpukit/include\")\n")
-    self.cmFile.write("add_definitions(-D_BSD_SOURCE) #TODO check this!\n")
     self.cmFile.write("add_definitions(-DHAVE_CONFIG_H)\n")
     self.cmFile.write("\n\n")
 
