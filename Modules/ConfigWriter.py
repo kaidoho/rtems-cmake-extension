@@ -86,16 +86,23 @@ class CmakeFileWriter():
       self.cmFile.write("set (SRC_{0}\n".format(target.getName().upper()))
     else:
       for i in range(len(dependencyNames) - 1):
-        self.cmFile.write("if(${" + dependencyNames[i + 1] + "})\n")
+
 
         # special handling for CPU_ blocks
         idx = dependencyNames[i + 1].find("CPU_")
         if -1 != idx:
+          name  =  dependencyNames[i + 1]
+          name = "\"{0}\")\n".format(str(name[4:]).lower())
+          self.cmFile.write("if(${\"RTEMS_TOP_ARCH\"} STREQUAL " + name)
           cpu = dependencyNames[i + 1]
           searchPath = self.sourceFolder + "/score/cpu/" + cpu[4:].lower()
           self.__addArchitectureIncludePaths(searchPath)
+        else:
+          self.cmFile.write("if(${" + dependencyNames[i + 1] + "})\n")
+
 
       self.cmFile.write("set (SRC_{0} ${{SRC_{0}}}\n".format(target.getName().upper()))
+
 
   def __writeBlockEnd(self, dependencyDepth, dependencyNames):
     self.cmFile.write(")\n")
