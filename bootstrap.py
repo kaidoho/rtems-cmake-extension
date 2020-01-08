@@ -47,7 +47,9 @@ def clean_rtems_src_dir(rdir):
     if os.path.exists(rdir + "/cmake"):
         logger.info("\tDelete folder: {0}".format(rdir + "/cmake"))
         shutil.rmtree(rdir + "/cmake", ignore_errors=True)
-    return
+    for f in glob.iglob(rdir + "/**/CMakeLists.txt", recursive=True):
+      os.remove(f)
+    
 
 def copy_in_cmake_rtems_src_dir(rdir):
     logger.info("Add CMake extensions")
@@ -79,17 +81,26 @@ if __name__ == '__main__':
                          help="set the path to directory in which you've checked out RTEMS"
                          "(default=../rtems)",
                          default="../rtems")
+    optArgs.add_argument('-c',"--clean-only", help="Clean RTEMS directory", action="store_true")
+    
     argParser._action_groups.append(optArgs)
     args = argParser.parse_args()
     currentWorkDir = os.getcwd()
 
     rtemsFolder = get_rtems_src_dir(args.rtems_source_directory)
-    clean_rtems_src_dir(rtemsFolder)
-    copy_in_cmake_rtems_src_dir(rtemsFolder)
-
+    
     logger.info("Bootstrap RTEMS")
     logger.info("Current work directory: {0}".format(currentWorkDir))
     logger.info("RTEMS directory: {0}".format(rtemsFolder))
+    
+    clean_rtems_src_dir(rtemsFolder)
+    
+    if args.clean_only:
+      sys.exit(0)
+    
+    copy_in_cmake_rtems_src_dir(rtemsFolder)
+
+
 
     CpukitParser = CpukitParser(rtemsFolder, logger)
     CpukitParser.parseMakefile()

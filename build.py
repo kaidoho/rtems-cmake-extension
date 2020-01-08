@@ -49,32 +49,33 @@ def run_cmake(tcRoot, tcDef, rtemsFolder, installFolder, cmakeBin, ninjaBin,
   tcRoot = tcRoot.replace("\\", "/")
   installFolder = installFolder.replace("\\", "/")
 
-  searchPath = rtemsFolder + "/**/"+bspName+".cfg"
-  logger.info("Search Path {0}".format(searchPath))
+  #searchPath = rtemsFolder + "/**/"+bspName+".cfg"
+  #logger.info("Search Path {0}".format(searchPath))
 
-  for filename in glob.iglob( searchPath, recursive=True):
-    bspFolder = filename
-    break
+  #for filename in glob.iglob( searchPath, recursive=True):
+  #  bspFolder = filename
+  #  break
 
-  if not os.path.isfile(bspFolder):
-    logger.error("BSP {0} not found in {1}.".format(bspName,rtemsFolder))
-    sys.exit()
-  bspFolder = os.path.dirname(bspFolder)
-  bspFolder = os.path.abspath(bspFolder + "/../")
-  bspFolder = os.path.basename(bspFolder)
+  
+  #if not os.path.isfile(bspFolder):
+   # logger.error("BSP {0} not found in {1}.".format(bspName,rtemsFolder))
+   # sys.exit()
+  #bspFolder = os.path.dirname(bspFolder)
+  #bspFolder = os.path.abspath(bspFolder + "/../")
+  #bspFolder = os.path.basename(bspFolder)
 
 
   cmd.append("-GEclipse CDT4 - Ninja")
   cmd.append("-DCMAKE_MAKE_PROGRAM={0}".format(ninjaBin))
   cmd.append("-DPREBUILD_LIB_DIR={0}".format(workDir +"/precompile/lib"))
   cmd.append("-DPREBUILD_LINKER_DIR={0}".format(workDir +"/precompile/linker"))
-  cmd.append("-DRTEMS_CPU={0}".format(rtemsCpu))
-  cmd.append("-DRTEMS_BSP={0}".format(bspName))
+  #cmd.append("-DRTEMS_CPU={0}".format(rtemsCpu))
+  #cmd.append("-DRTEMS_BSP={0}".format(bspName))
   cmd.append("-DRTEMS_TC_ROOT={0}".format(tcRoot))
   cmd.append("-DCMAKE_INSTALL_PREFIX={0}".format(installFolder))
   cmd.append("-DCMAKE_TOOLCHAIN_FILE={0}".format(tcDef))
   cmd.append("-DCMAKE_VERBOSE_MAKEFILE=ON")
-  cmd.append("-DRTEMS_BSP_DIR_NAME={0}".format(bspFolder))
+  #cmd.append("-DRTEMS_BSP_DIR_NAME={0}".format(bspFolder))
   cmd.append("-DRTEMS_NETWORKING={0}".format(str(int(enable_networking))))
   cmd.append("-DRTEMS_POSIX_API={0}".format(str(int(enable_posix))))
   cmd.append("-DRTEMS_MULTIPROCESSING={0}".format(str(int(enable_multiprocessing))))
@@ -204,9 +205,9 @@ if __name__ == "__main__":
 
 
   envArgs.add_argument("-idir","--prefix",   help="set the directory to which RTEMS is installed" 
-                        " (default=../../SystemOS/rtems/_install)", default="../../SystemOS/rtems/_install")
+                        " (default=build/_install)", default="build/rtems/_install")
   envArgs.add_argument("-bdir","--builddir", help="set the directory in which CMake will build RTEMS" 
-                        "(default=../../SystemOS/rtems/_build) "  , default="../../SystemOS/rtems/_build")
+                        "(default=build/_build) "  , default="build/_build")
   if sys.platform == "linux" or sys.platform == "linux2":
 
     envArgs.add_argument("-cdir","--cmakeBin", help="path to the directory containing cmake executable",
@@ -221,9 +222,9 @@ if __name__ == "__main__":
     envArgs.add_argument("-ndir","--ninjaBin", help="path to the directory containing ninja executable",
                          default="D:/projects/ninja/ninja.exe")
     optArgs.add_argument("-tcRoot",   help="must point to the root directory of the toolchain ",
-                         default="D:/projects/arm-rtems5-kernel-5-1")
+                         default="D:/home/scrapmetal/tools/rtems")
 
-  optArgs.add_argument("-bsp",   help="enter the BSP",default="stm32f4")#"nucleo-stm32f746zg") #"stm32f4")#
+  optArgs.add_argument("-bsp",   help="enter the BSP",default="rtems5-stm32f7x7")#"nucleo-stm32f746zg") #"stm32f4")#
 
   optArgs.add_argument("--enable-multiprocessing", help="enable multiprocessing interface" \
                           "the multiprocessing interface is a communication "\
@@ -240,8 +241,8 @@ if __name__ == "__main__":
   optArgs.add_argument("--enable-drvmgr", help="enable Driver Manager at Startup", action="store_true")
   optArgs.add_argument("--print-targets", help="print all available targets and exit", action="store_true")
   optArgs.add_argument("-rtems-src","--rtems-source-directory", help="set the path to directory in which "
-                          "you have checked out RTEMS (default=../../SystemOS/rtems/rtems)",
-                          default="../../SystemOS/rtems/rtems")
+                          "you have checked out RTEMS (default=../rtems)",
+                          default="../rtems")
 
   parser._action_groups.append(optArgs)
   args = parser.parse_args()
@@ -276,8 +277,8 @@ if __name__ == "__main__":
 
   rtemsFolder = rtemsFolder.replace("\\", "/")
 
-  rtemsCpu = find_cpu_of_bsp(rtemsFolder, args.bsp)
-
+  #rtemsCpu = find_cpu_of_bsp(rtemsFolder, args.bsp)
+  rtemsCpu="x"
   for task in range(len(buildtasks)):
 
     if buildtasks[task] == "config":
